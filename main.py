@@ -63,7 +63,7 @@ OLLAMA_VERSION_ENDPOINT = f"{OLLAMA_BASE_URL}/api/version"
 LLM_PROVIDER_DEFAULT = os.getenv("LLM_PROVIDER", "openrouter").strip().lower()  # "ollama" | "openrouter"
 OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1").rstrip("/")
 OPENROUTER_CHAT_ENDPOINT = f"{OPENROUTER_BASE_URL}/chat/completions"
-OPENROUTER_API_KEY = os.getenv("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", "").strip()
+OPENROUTER_API_KEY = os.getenv("api-key-here", "").strip()
 OPENROUTER_DEFAULT_MODEL = os.getenv("OPENROUTER_DEFAULT_MODEL", "mistralai/devstral-2512:free").strip()
 # Optional metadata headers recommended by OpenRouter
 OPENROUTER_SITE_URL = os.getenv("OPENROUTER_SITE_URL", "").strip()   # e.g. "https://example.com"
