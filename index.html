@@ -1,0 +1,1980 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Discord AI2026</title>
+  <style>
+
+    :root{
+      --bg0:#0b0d12;
+      --bg1:#0f1117;
+      --bg2:#151826;
+      --bg3:#1a1f2e;
+      --line:#232a3a;
+      --text:#e7e7e7;
+      --muted:#9aa4b2;
+      --accent:#5865F2;
+      --good:#3ba55d;
+      --warn:#faa61a;
+      --bad:#ed4245;
+      --info:#3498db;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius:14px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:var(--bg1);
+      color:var(--text);
+      overflow:hidden;
+    }
+
+    /* Layout */
+    .app{
+      height:100%;
+      height:100vh;
+      min-height:0;
+      display:grid;
+      grid-template-columns: 74px 260px 1fr 280px;
+      background:var(--bg1);
+    }
+
+    /* Left "servers" rail */
+    .servers{
+      background: #07080b;
+      border-right:1px solid #0f1220;
+      padding:10px 8px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      align-items:center;
+      min-height:0;
+      overflow:hidden;
+    }
+    .srvScroll{
+      flex:1;
+      min-height:0;
+      width:100%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:10px;
+      overflow:auto;
+      padding-right:2px;
+    }
+    .srvBottom{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      align-items:center;
+      padding-top:6px;
+    }
+    .srv{
+      width:52px; height:52px;
+      border-radius:18px;
+      background: #141827;
+      border:1px solid #1f2638;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:900;
+      cursor:pointer;
+      transition: .12s ease;
+      user-select:none;
+    }
+    .srv:hover{ transform: translateY(-1px); border-color:#2b3550; }
+    .srv.active{ background: #1b2140; border-color: #2f3a66; }
+    .srvDot{
+      width:10px; height:10px; border-radius:999px;
+      background:var(--bad);
+      position:absolute; transform: translate(18px, -18px);
+      border:2px solid #07080b;
+      display:none;
+    }
+
+    /* Channels column */
+    .channels{
+      background: #0c0f16;
+      border-right:1px solid #0f1220;
+      display:flex;
+      flex-direction:column;
+      min-width:0;
+      min-height:0;
+      overflow:hidden;
+    }
+    .chanTop{
+      padding:12px 12px 10px;
+      border-bottom:1px solid #0f1220;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      min-width:0;
+    }
+    .brandLogo{
+      width:34px; height:34px;
+      border-radius:12px;
+      background: linear-gradient(135deg, #202a57, #101426);
+      border:1px solid #273055;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:900;
+      color:#cdd6ff;
+    }
+    .brandText{ min-width:0; }
+    .brandText .t1{ font-weight:900; }
+    .brandText .t2{ color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .btnIcon{
+      border:1px solid #1f2638;
+      background:#121528;
+      color:var(--text);
+      width:34px; height:34px;
+      border-radius:12px;
+      cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      transition:.12s ease;
+    }
+    .btnIcon:hover{ border-color:#2b3550; transform: translateY(-1px); }
+
+    .chanScroll{ 
+      flex:1;
+      padding:12px; 
+      overflow:auto; 
+      min-height:0; 
+    }
+    .sectionTitle{
+      display:flex; align-items:center; justify-content:space-between;
+      color:var(--muted);
+      font-size:12px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      margin:8px 0;
+    }
+    .channelItem{
+      padding:9px 10px;
+      border-radius:12px;
+      cursor:pointer;
+      border:1px solid transparent;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .channelItem:hover{ background:#101428; }
+    .channelItem.active{ background:#101428; border-color:#2a3455; }
+    .hash{ color:var(--muted); font-weight:900; margin-right:6px; }
+    .chName{
+      min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+      font-weight:700;
+    }
+    .pill{
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:999px;
+      background:#111522;
+      border:1px solid #1f2638;
+      color:var(--muted);
+      white-space:nowrap;
+    }
+
+    .card{
+      background:#0f1322;
+      border:1px solid #1f2638;
+      border-radius: var(--radius);
+      padding:10px;
+      box-shadow: 0 0 0 rgba(0,0,0,0);
+    }
+    input, textarea, select{
+      width:100%;
+      background:#0f1322;
+      border:1px solid #1f2638;
+      color:var(--text);
+      border-radius:12px;
+      padding:10px;
+      outline:none;
+    }
+    textarea{ resize: vertical; min-height:80px; }
+    .tiny{ font-size:12px; color:var(--muted); }
+    .btn{
+      border:1px solid #273055;
+      background:#121528;
+      color:var(--text);
+      border-radius:12px;
+      padding:10px 12px;
+      cursor:pointer;
+      font-weight:700;
+      transition:.12s ease;
+    }
+    .btn:hover{ border-color:#32406f; transform: translateY(-1px); }
+    .btn.primary{ background: var(--accent); border-color:#434fc7; color:white; }
+    .row{ display:flex; gap:10px; align-items:center; }
+    .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+    details summary{ cursor:pointer; color:var(--muted); }
+    details > div{ margin-top:10px; }
+
+    /* Chat column */
+    .chatCol{
+      display:flex;
+      flex-direction:column;
+      min-width:0;
+      min-height:0;
+      overflow:hidden;
+      background: var(--bg1);
+    }
+    .topbar{
+      padding:10px 12px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      background: rgba(15,17,23,.82);
+      backdrop-filter: blur(8px);
+    }
+    .topLeft{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+    }
+    .chanTitle{
+      display:flex; align-items:center;
+      gap:8px;
+      min-width:0;
+    }
+    .chanTitle .name{
+      font-weight:900;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .meta{
+      color:var(--muted);
+      font-size:12px;
+      white-space:nowrap;
+      overflow:hidden; text-overflow:ellipsis;
+    }
+    .actions{ display:flex; gap:8px; align-items:center; }
+    .searchBox{
+      display:flex; align-items:center; gap:8px;
+      background:#0f1322;
+      border:1px solid #1f2638;
+      border-radius:12px;
+      padding:8px 10px;
+      min-width: 220px;
+    }
+    .searchBox input{
+      border:0; padding:0; background:transparent; outline:none;
+    }
+    .kbd{
+      font-size:11px;
+      padding:2px 6px;
+      border-radius:7px;
+      border:1px solid #2a3455;
+      color:var(--muted);
+      background:#0b0f1f;
+    }
+
+    .chatScroll{
+      flex:1;
+      overflow:auto;
+      padding: 16px 14px;
+      min-height:0;
+    }
+    .welcome{
+      margin: 8px 0 14px;
+      padding: 14px;
+      border-radius: var(--radius);
+      border:1px dashed #2a3455;
+      color:var(--muted);
+    }
+
+    .msgRow{
+      display:grid;
+      grid-template-columns: 46px 1fr;
+      gap:10px;
+      padding: 6px 6px;
+      border-radius: 12px;
+      position:relative;
+    }
+    .msgRow:hover{ background: rgba(16,20,40,.6); }
+    .avatar{
+      width:40px; height:40px;
+      border-radius: 14px;
+      border:1px solid #2a3455;
+      background:#121528;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:900;
+      color:#dbe3ff;
+      user-select:none;
+    }
+    .msgMain{ min-width:0; }
+    .msgHeader{
+      display:flex;
+      align-items:baseline;
+      gap:10px;
+      min-width:0;
+    }
+    .msgHeader .author{
+      font-weight:900;
+      white-space:nowrap;
+    }
+    .msgHeader .time{
+      font-size:12px;
+      color:var(--muted);
+      white-space:nowrap;
+    }
+    .msgHeader .tags{
+      display:flex; gap:6px; align-items:center;
+    }
+    .tag{
+      font-size:11px;
+      padding:2px 7px;
+      border-radius:999px;
+      border:1px solid #2a3455;
+      background:#0f1322;
+      color:var(--muted);
+    }
+    .msgText{
+      margin-top:4px;
+      white-space:pre-wrap;
+      word-break: break-word;
+      line-height:1.35em;
+    }
+    .msgText code{
+      background:#0b0f1f;
+      border:1px solid #1f2638;
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.95em;
+    }
+    .replyPreview{
+      border-left: 3px solid #2a3455;
+      padding-left:10px;
+      margin-top:8px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .reactions{
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+      margin-top:8px;
+    }
+    .react{
+      border:1px solid #2a3455;
+      background:#0f1322;
+      border-radius: 999px;
+      padding: 4px 8px;
+      cursor:pointer;
+      font-size:12px;
+      color: var(--text);
+      display:flex;
+      gap:6px;
+      align-items:center;
+      user-select:none;
+    }
+    .react:hover{ border-color:#3a4a85; transform: translateY(-1px); }
+    .react .cnt{ color:var(--muted); }
+
+    .msgActions{
+      position:absolute;
+      right:10px;
+      top:8px;
+      display:none;
+      gap:6px;
+      background: rgba(11,13,18,.85);
+      border:1px solid #1f2638;
+      padding:6px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+    .msgRow:hover .msgActions{ display:flex; }
+    .miniBtn{
+      width:30px; height:30px;
+      border-radius:10px;
+      border:1px solid #273055;
+      background:#121528;
+      color:var(--text);
+      cursor:pointer;
+    }
+    .miniBtn:hover{ border-color:#3a4a85; transform: translateY(-1px); }
+
+    /* Composer */
+    .composer{
+      padding:12px;
+      border-top:1px solid var(--line);
+      background: rgba(15,17,23,.82);
+      backdrop-filter: blur(8px);
+    }
+    .replyBar{
+      display:none;
+      margin-bottom:8px;
+      padding:10px;
+      border-radius:12px;
+      border:1px solid #2a3455;
+      background:#0f1322;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .replyBar .x{
+      margin-left:auto;
+      width:26px; height:26px;
+      border-radius:10px;
+      border:1px solid #273055;
+      background:#121528;
+      color:var(--text);
+      cursor:pointer;
+    }
+    .composerRow{
+      display:flex;
+      gap:10px;
+      align-items:flex-end;
+    }
+    .msgInput{
+      flex:1;
+      padding:10px 12px;
+      border-radius: 14px;
+      border:1px solid #1f2638;
+      background:#0f1322;
+      min-height:42px;
+      max-height:160px;
+      overflow:auto;
+      outline:none;
+      white-space:pre-wrap;
+    }
+    .msgInput[contenteditable="true"]:empty:before{
+      content: attr(data-placeholder);
+      color: var(--muted);
+    }
+    .sendBtn{
+      width:44px; height:44px;
+      border-radius: 14px;
+      background: var(--accent);
+      border:1px solid #434fc7;
+      color:white;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    /* Right panel (members / pins / dev) */
+    .right{
+      background:#0c0f16;
+      border-left:1px solid #0f1220;
+      display:flex;
+      flex-direction:column;
+      min-width:0;
+      min-height:0;
+      overflow:hidden;
+    }
+    .rightTabs{
+      padding:10px 10px 8px;
+      border-bottom:1px solid #0f1220;
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .tab{
+      padding:8px 10px;
+      border-radius:12px;
+      border:1px solid transparent;
+      cursor:pointer;
+      font-weight:800;
+      font-size:12px;
+      color:var(--muted);
+      user-select:none;
+    }
+    .tab.active{ background:#101428; border-color:#2a3455; color:var(--text); }
+    .rightScroll{ 
+      flex:1;
+      padding:12px; 
+      overflow:auto; 
+      min-height:0; 
+    }
+    .member{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px;
+      border-radius:12px;
+    }
+    .member:hover{ background:#101428; }
+    .memberL{ display:flex; gap:10px; align-items:center; min-width:0; }
+    .mName{ font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .mAbout{ color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .statusDot{
+      width:10px; height:10px; border-radius:999px;
+      border:2px solid #0c0f16;
+      background: var(--muted);
+      box-shadow: 0 0 0 2px rgba(0,0,0,.12);
+    }
+    .st-online{ background: var(--good); }
+    .st-idle{ background: var(--warn); }
+    .st-dnd{ background: var(--bad); }
+    .st-offline{ background: #5d6776; }
+    .st-typing{ background: var(--info); }
+
+    /* Modals */
+    .modalBack{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      z-index: 50;
+    }
+    .modal{
+      width:min(920px, 100%);
+      background:#0c0f16;
+      border:1px solid #273055;
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .modalHead{
+      padding:12px 12px;
+      border-bottom:1px solid #0f1220;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .modalBody{ padding:12px; max-height: 78vh; overflow:auto; }
+    .closeX{
+      width:36px; height:36px; border-radius:12px;
+      border:1px solid #273055; background:#121528;
+      color:var(--text); cursor:pointer;
+    }
+
+    .toggle{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
+      padding:10px;
+      border-radius:12px;
+      border:1px solid #1f2638;
+      background:#0f1322;
+      margin:8px 0;
+    }
+    .toggle label{ font-weight:800; }
+    .toggle .sub{ font-size:12px; color:var(--muted); margin-top:2px; font-weight:600; }
+    .toggle input[type="checkbox"]{ width:18px; height:18px; }
+
+    /* Responsive */
+    @media (max-width: 980px){
+      .app{ grid-template-columns: 74px 260px 1fr; }
+      .right{ display:none; }
+      .searchBox{ display:none; }
+    }
+    @media (max-width: 720px){
+      .app{ grid-template-columns: 74px 1fr; }
+      .channels{ display:none; }
+    }
+  
+</style>
+</head>
+<body>
+  <div class="app">
+    <!-- Servers -->
+    <div class="servers">
+      <div class="srvScroll" id="serverScroll">
+        <div class="srv active" id="srvHome" title="AI Hub" style="position:relative">
+          AI
+          <div class="srvDot" id="srvDot"></div>
+        </div>
+      </div>
+
+      <div class="srvBottom">
+        <button class="btnIcon" id="openSettings" title="Settings">⚙️</button>
+      </div>
+    </div>
+
+    <!-- Channels -->
+    <div class="channels" id="channelsCol">
+      <div class="chanTop">
+        <div class="brand">
+          <div class="brandLogo">D</div>
+          <div class="brandText">
+            <div class="t1">Discord AI2026</div>
+            <div class="t2" id="healthLine">Checking Ollama…</div>
+          </div>
+        </div>
+        <button class="btnIcon" id="refreshAll" title="Refresh">↻</button>
+      </div>
+
+      <div class="chanScroll">
+        <div class="sectionTitle">
+          <div>Text Channels</div>
+          <button class="btnIcon" id="newChannel" title="Create Channel">＋</button>
+        </div>
+        <div id="channelsList"></div>
+
+        <div class="sectionTitle" style="margin-top:14px;">
+          <div>AI Members</div>
+          <span class="pill" id="memberCount">0</span>
+        </div>
+
+        <details>
+          <summary class="tiny">Add a new AI</summary>
+          <div class="card" style="margin-top:10px;">
+            <div class="row2">
+              <input id="c_name" placeholder="Name (e.g. Nova)" />
+              <input id="c_about" placeholder="About (optional)" />
+            </div>
+                        <div class="row2" style="margin-top:10px;">
+              <select id="c_provider">
+                <option value="ollama">Ollama (local)</option>
+                <option value="openrouter">OpenRouter (cloud)</option>
+              </select>
+              <select id="c_model"></select>
+            </div>
+            <div class="row2" style="margin-top:10px;">
+              <select id="c_gate_provider">
+                <option value="ollama">Gate: Ollama (local)</option>
+                <option value="openrouter">Gate: OpenRouter (cloud)</option>
+              </select>
+              <select id="c_gate"></select>
+            </div>
+
+            <div class="card" id="openrouterCard" style="margin-top:10px; display:none;">
+              <div style="font-weight:900">OpenRouter</div>
+              <div class="tiny" style="margin-top:6px;">Models are typed, not auto-listed. Example: <b>mistralai/devstral-2512:free</b></div>
+              <div class="row2" style="margin-top:10px;">
+                <input id="c_or_model" placeholder="Chat model (OpenRouter) e.g. mistralai/devstral-2512:free" />
+                <input id="c_or_gate" placeholder="Gate model (OpenRouter) optional (leave blank = use gate dropdown or same as chat)" />
+              </div>
+              <div class="tiny" style="margin-top:8px;">
+                Tip: Set <b>OPENROUTER_API_KEY</b> in your server environment. (We don't store keys in the browser.)
+              </div>
+            </div>
+            <div class="row2" style="margin-top:10px;">
+              <input id="c_color" placeholder='Profile color (e.g. #5865F2) optional' />
+              <input id="c_interval" type="number" min="3" max="120" value="10" placeholder="Gate interval seconds" />
+            </div>
+
+            <textarea id="c_sys" placeholder="System prompt" style="margin-top:10px;"></textarea>
+
+            <div class="row" style="margin-top:10px; justify-content:space-between;">
+              <div class="row" style="gap:10px;">
+                <label class="tiny"><input type="checkbox" id="c_humanize" /> human-like pacing</label>
+                <label class="tiny"><input type="checkbox" id="c_split" /> split messages</label>
+              </div>
+              <button class="btn primary" id="createChar">Add</button>
+            </div>
+
+            <div class="tiny" style="margin-top:10px;">
+              If a model isn't in the dropdown, run <b>ollama pull ...</b> then Refresh.
+            </div>
+          </div>
+        </details>
+
+        <details style="margin-top:12px;">
+          <summary class="tiny">Dev</summary>
+          <div class="toggle">
+            <div>
+              <label>Dev Feed</label>
+              <div class="sub">Gate decisions, prompt previews, draft replies (optional)</div>
+            </div>
+            <input type="checkbox" id="devToggle"/>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- Chat -->
+    <div class="chatCol">
+      <div class="topbar">
+        <div class="topLeft">
+          <div class="chanTitle">
+            <span class="hash">#</span>
+            <span class="name" id="activeTitle">—</span>
+          </div>
+          <div class="meta" id="activeMeta"></div>
+        </div>
+
+        <div class="actions">
+          <div class="searchBox" title="Search messages">
+            🔎 <input id="searchInput" placeholder="Search" />
+            <span class="kbd">Enter</span>
+          </div>
+          <button class="btnIcon" id="btnPins" title="Pins">📌</button>
+          <button class="btnIcon" id="btnMembers" title="Toggle Members">👥</button>
+        </div>
+      </div>
+
+      <div class="chatScroll" id="chat">
+        <div class="welcome" id="welcomeBox">
+          Welcome to <b>#general</b> — this chat behaves like a Discord channel.<br/>
+          Most extra features are optional and controlled in <b>Settings</b>.
+        </div>
+      </div>
+
+      <div class="composer">
+        <div class="replyBar" id="replyBar">
+          <div class="row" style="gap:10px; width:100%;">
+            <div id="replyText" style="min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></div>
+            <button class="x" id="cancelReply" title="Cancel reply">✕</button>
+          </div>
+        </div>
+
+        <div class="composerRow">
+          <button class="btnIcon" id="btnEmoji" title="Quick reactions">😀</button>
+          <div class="msgInput" id="msg" contenteditable="true" data-placeholder="Message #channel"></div>
+          <button class="sendBtn" id="send" title="Send">➤</button>
+        </div>
+        <div class="tiny" id="typingLine" style="margin-top:8px;"></div>
+      </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="right" id="rightPanel">
+      <div class="rightTabs">
+        <div class="tab active" data-tab="members" id="tabMembers">Members</div>
+        <div class="tab" data-tab="pins" id="tabPins">Pins</div>
+        <div class="tab" data-tab="dev" id="tabDev">Dev</div>
+        <div style="flex:1"></div>
+        <span class="pill" id="connStatus">offline</span>
+      </div>
+
+      <div class="rightScroll" id="rightBody"></div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modalBack" id="settingsBack">
+    <div class="modal">
+      <div class="modalHead">
+        <div style="font-weight:900">Settings</div>
+        <button class="closeX" id="closeSettings">✕</button>
+      </div>
+      <div class="modalBody">
+        <div class="toggle">
+          <div>
+            <label>Show members panel</label>
+            <div class="sub">Right side member list like Discord</div>
+          </div>
+          <input type="checkbox" id="s_showMembers"/>
+        </div>
+
+        <div class="toggle">
+          <div>
+            <label>Enable reactions</label>
+            <div class="sub">Emoji reacts on messages (server-supported)</div>
+          </div>
+          <input type="checkbox" id="s_reactions"/>
+        </div>
+
+        <div class="toggle">
+          <div>
+            <label>Enable message editing</label>
+            <div class="sub">Edit your own messages (server-supported)</div>
+          </div>
+          <input type="checkbox" id="s_editing"/>
+        </div>
+
+        <div class="toggle">
+          <div>
+            <label>Enable pinning</label>
+            <div class="sub">Pin messages + pins tab (server-supported)</div>
+          </div>
+          <input type="checkbox" id="s_pins"/>
+        </div>
+
+        <div class="toggle">
+          <div>
+            <label>Enable replying</label>
+            <div class="sub">Reply-to a message (quote preview)</div>
+          </div>
+          <input type="checkbox" id="s_reply"/>
+        </div>
+
+        <div class="toggle">
+          <div>
+            <label>Safe markdown</label>
+            <div class="sub">**bold**, *italics*, `code` (no links/HTML)</div>
+          </div>
+          <input type="checkbox" id="s_markdown"/>
+        </div>
+
+        <div class="toggle">
+          <div>
+            <label>Sounds</label>
+            <div class="sub">Play a tiny sound on new messages</div>
+          </div>
+          <input type="checkbox" id="s_sounds"/>
+        </div>
+
+        <div class="toggle">
+          <div>
+            <label>Desktop notifications</label>
+            <div class="sub">Browser notifications for new messages</div>
+          </div>
+          <input type="checkbox" id="s_notify"/>
+        </div>
+
+        <div class="toggle">
+          <div>
+            <label>Compact mode</label>
+            <div class="sub">Tighter message spacing</div>
+          </div>
+          <input type="checkbox" id="s_compact"/>
+        </div>
+
+        <div class="toggle">
+          <div>
+            <label>Show timestamps</label>
+            <div class="sub">Show per-message time</div>
+          </div>
+          <input type="checkbox" id="s_time"/>
+        </div>
+
+        <div class="toggle">
+          <div>
+            <label>Show avatars</label>
+            <div class="sub">Display avatars beside messages</div>
+          </div>
+          <input type="checkbox" id="s_avatars"/>
+        </div>
+
+        <div class="toggle">
+          <div>
+            <label>Enter to send</label>
+            <div class="sub">Shift+Enter makes a new line</div>
+          </div>
+          <input type="checkbox" id="s_enterSend"/>
+        </div>
+
+        <div class="card" style="margin-top:12px;">
+          <div style="font-weight:900">Quick tips</div>
+          <div class="tiny" style="margin-top:8px;">
+            • Reply by hovering a message and clicking ↩︎ (if enabled)<br/>
+            • React by hovering a message and clicking 😀 (if enabled)<br/>
+            • Search with the box in the top bar (Enter)<br/>
+            • Pins show in the right panel (if enabled)
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Emoji Modal -->
+  <div class="modalBack" id="emojiBack">
+    <div class="modal" style="width:min(520px, 100%);">
+      <div class="modalHead">
+        <div style="font-weight:900">Quick Emoji</div>
+        <button class="closeX" id="closeEmoji">✕</button>
+      </div>
+      <div class="modalBody">
+        <div class="tiny">Click an emoji to add it as a reaction to the selected message.</div>
+        <div id="emojiGrid" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:12px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = ""; // same-origin
+
+    // -------------------------
+    // Settings (all optional)
+    // -------------------------
+    const DEFAULT_SETTINGS = {
+      showMembers: true,
+      enableReactions: true,
+      enableEditing: true,
+      enablePins: true,
+      enableReply: true,
+      safeMarkdown: true,
+      sounds: false,
+      notify: false,
+      compact: false,
+      showTime: true,
+      showAvatars: true,
+      enterToSend: true
+    };
+
+    function loadSettings(){
+      try{
+        const raw = localStorage.getItem("ai2026_settings");
+        const obj = raw ? JSON.parse(raw) : {};
+        return {...DEFAULT_SETTINGS, ...obj};
+      } catch {
+        return {...DEFAULT_SETTINGS};
+      }
+    }
+    function saveSettings(s){
+      localStorage.setItem("ai2026_settings", JSON.stringify(s));
+    }
+
+    let settings = loadSettings();
+
+    // -------------------------
+    // State
+    // -------------------------
+    let activeConversationId = null;
+    let ws = null;
+
+    let charactersById = {};
+    let conversationsById = {};
+    let members = []; // presence payload
+    let typing = {};  // char_id -> bool
+
+    let messagesById = {}; // id -> message
+    let messageEls = {};   // id -> dom element
+    let replyToId = null;
+
+    let devEnabled = false;
+    let llmProviderDefault = "ollama";
+    let openrouterDefaultModel = "mistralai/devstral-2512:free";
+
+    let activeRightTab = "members";
+
+    // for emoji modal
+    const QUICK_EMOJI = ["😀","😂","🔥","❤️","👍","👀","😮","🤔","👏","💯","🎉","🧠","💀","😅","🙌","✅"];
+    let emojiTargetMsgId = null;
+
+    const el = (id) => document.getElementById(id);
+
+    // -------------------------
+    // Utilities
+    // -------------------------
+    function escapeHtml(s){
+      return (s ?? "").toString()
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;");
+    }
+
+    function fmtTime(ts){
+      const d = new Date(ts*1000);
+      return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    }
+
+    function hashColor(str){
+      // deterministic pleasant-ish color (fallback when character has none)
+      let h = 0;
+      const s = (str ?? "").toString();
+      for (let i=0;i<s.length;i++) h = (h*31 + s.charCodeAt(i)) >>> 0;
+      const hue = h % 360;
+      return `hsl(${hue} 55% 55%)`;
+    }
+
+    function authorName(m){
+      if (m.author_type === "user") return "You";
+      return charactersById[m.author_id]?.name || "Character";
+    }
+
+    function authorAvatar(m){
+      const name = authorName(m);
+      const letter = (name || "?").trim().slice(0,1).toUpperCase();
+      const c = (m.author_type === "character") ? charactersById[m.author_id] : null;
+      const color = (c?.profile_color && c.profile_color.trim()) ? c.profile_color.trim() : hashColor(name);
+      return {letter, color};
+    }
+
+    function renderText(content){
+      const safe = escapeHtml(content || "");
+      if (!settings.safeMarkdown) return safe.replaceAll("\n","<br>");
+      // apply minimal markdown AFTER escaping (safe)
+      let s = safe;
+      s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+      s = s.replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
+      s = s.replace(/\*([^*]+)\*/g, "<i>$1</i>");
+      s = s.replaceAll("\n", "<br>");
+      return s;
+    }
+
+    function setConnStatus(text){
+      el("connStatus").textContent = text;
+      el("srvDot").style.display = (text === "offline" || text === "error") ? "block" : "none";
+    }
+
+    function playPing(){
+      if (!settings.sounds) return;
+      try{
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value = 660;
+        g.gain.value = 0.04;
+        o.start();
+        setTimeout(() => { o.stop(); ctx.close(); }, 70);
+      } catch {}
+    }
+
+    async function maybeNotify(title, body){
+      if (!settings.notify) return;
+      if (!("Notification" in window)) return;
+      if (Notification.permission === "default") {
+        try { await Notification.requestPermission(); } catch {}
+      }
+      if (Notification.permission !== "granted") return;
+      try { new Notification(title, { body }); } catch {}
+    }
+
+    function applyUISettings(){
+      // members panel visibility
+      el("rightPanel").style.display = settings.showMembers ? "flex" : "none";
+      // tab availability
+      el("tabPins").style.display = settings.enablePins ? "block" : "none";
+      el("tabDev").style.display = devEnabled ? "block" : "none";
+
+      // compact mode
+      document.body.style.setProperty("--radius", settings.compact ? "12px" : "14px");
+      // update placeholders
+      const ch = conversationsById[activeConversationId];
+      el("msg").setAttribute("data-placeholder", ch ? `Message #${ch.title}` : "Message #channel");
+    }
+
+    function syncSettingsModal(){
+      el("s_showMembers").checked = !!settings.showMembers;
+      el("s_reactions").checked = !!settings.enableReactions;
+      el("s_editing").checked = !!settings.enableEditing;
+      el("s_pins").checked = !!settings.enablePins;
+      el("s_reply").checked = !!settings.enableReply;
+      el("s_markdown").checked = !!settings.safeMarkdown;
+      el("s_sounds").checked = !!settings.sounds;
+      el("s_notify").checked = !!settings.notify;
+      el("s_compact").checked = !!settings.compact;
+      el("s_time").checked = !!settings.showTime;
+      el("s_avatars").checked = !!settings.showAvatars;
+      el("s_enterSend").checked = !!settings.enterToSend;
+    }
+
+    function openSettings(){
+      syncSettingsModal();
+      el("settingsBack").style.display = "flex";
+    }
+    function closeSettings(){
+      el("settingsBack").style.display = "none";
+    }
+
+    function openEmojiModal(msgId){
+      emojiTargetMsgId = msgId;
+      el("emojiBack").style.display = "flex";
+    }
+    function closeEmojiModal(){
+      emojiTargetMsgId = null;
+      el("emojiBack").style.display = "none";
+    }
+
+    // -------------------------
+    // Right panel rendering
+    // -------------------------
+    function setRightTab(tab){
+      activeRightTab = tab;
+      el("tabMembers").classList.toggle("active", tab==="members");
+      el("tabPins").classList.toggle("active", tab==="pins");
+      el("tabDev").classList.toggle("active", tab==="dev");
+      renderRightPanel();
+    }
+
+    function statusClass(st){
+      if (st === "online") return "st-online";
+      if (st === "idle") return "st-idle";
+      if (st === "dnd") return "st-dnd";
+      if (st === "typing") return "st-typing";
+      return "st-offline";
+    }
+
+    async function renderRightPanel(){
+      const body = el("rightBody");
+      body.innerHTML = "";
+
+      if (activeRightTab === "members"){
+        const list = document.createElement("div");
+        members.forEach(m => {
+          const div = document.createElement("div");
+          div.className = "member";
+          const dot = `<span class="statusDot ${statusClass(m.status)}"></span>`;
+          div.innerHTML = `
+            <div class="memberL">
+              <div class="avatar" style="width:34px;height:34px;border-radius:12px;background:${escapeHtml(m.profile_color || hashColor(m.name))}20;border-color:#2a3455;">
+                ${escapeHtml((m.name||"?").slice(0,1).toUpperCase())}
+              </div>
+              <div style="min-width:0">
+                <div class="mName">${escapeHtml(m.name)}</div>
+                <div class="mAbout">${escapeHtml(m.about || m.status)}</div>
+              </div>
+            </div>
+            ${dot}
+          `;
+          list.appendChild(div);
+        });
+        body.appendChild(list);
+        return;
+      }
+
+      if (activeRightTab === "pins"){
+        if (!settings.enablePins){
+          body.innerHTML = `<div class="tiny">Pinning is disabled in Settings.</div>`;
+          return;
+        }
+        body.innerHTML = `<div class="tiny">Loading pins…</div>`;
+        try{
+          const r = await fetch(`${API}/conversations/${activeConversationId}/pins`);
+          const pins = await r.json();
+          body.innerHTML = "";
+          if (!pins.length){
+            body.innerHTML = `<div class="tiny">No pinned messages yet.</div>`;
+            return;
+          }
+          pins.reverse().forEach(p => {
+            const div = document.createElement("div");
+            div.className = "card";
+            div.style.marginBottom = "10px";
+            div.innerHTML = `
+              <div style="display:flex; justify-content:space-between; gap:10px;">
+                <div style="font-weight:900">${escapeHtml(authorName(p))}</div>
+                <div class="tiny">${escapeHtml(fmtTime(p.ts))}</div>
+              </div>
+              <div class="tiny" style="margin-top:8px; white-space:pre-wrap">${escapeHtml(p.content)}</div>
+              <div style="margin-top:10px;">
+                <button class="btn" data-jump="${escapeHtml(p.id)}">Jump</button>
+              </div>
+            `;
+            div.querySelector("[data-jump]").onclick = () => jumpToMessage(p.id);
+            body.appendChild(div);
+          });
+        } catch {
+          body.innerHTML = `<div class="tiny">Failed to load pins.</div>`;
+        }
+        return;
+      }
+
+      if (activeRightTab === "dev"){
+        if (!devEnabled){
+          body.innerHTML = `<div class="tiny">Dev feed is off.</div>`;
+          return;
+        }
+        const devLog = document.createElement("div");
+        devLog.id = "devLog";
+        body.appendChild(devLog);
+        // existing events are appended directly as they arrive
+        return;
+      }
+    }
+
+    // -------------------------
+    // Channel + models loading
+    // -------------------------
+    async function loadHealth(){
+      try{
+        const r = await fetch(`${API}/health`);
+        const h = await r.json();
+
+        // capture defaults for UI
+        if (h.llm_provider_default) llmProviderDefault = h.llm_provider_default;
+        if (h.defaults?.openrouter_default_model) openrouterDefaultModel = h.defaults.openrouter_default_model;
+
+        const oll = h.ollama_up ? "online" : "offline";
+        const or = h.openrouter_configured ? "configured" : "missing key";
+        const def = llmProviderDefault === "openrouter" ? "OpenRouter" : "Ollama";
+
+        el("healthLine").innerHTML =
+          `Ollama: <b>${oll}</b> • OpenRouter: <b>${or}</b> • Default: <b>${def}</b>`;
+      } catch {
+        el("healthLine").textContent = "Health check failed";
+      }
+    }
+
+    async function loadOllamaModels(){
+      const chatSel = el("c_model");
+      const gateSel = el("c_gate");
+      chatSel.innerHTML = "";
+      gateSel.innerHTML = "";
+
+      const fallback = ["llama3.2:3b","llama3.2","llama3.1:3b","phi3","mistral","smollm:360m","smollm","smalllm"];
+      const addOpt = (sel, v, selected=false) => {
+        const o = document.createElement("option");
+        o.value = v; o.textContent = v;
+        if (selected) o.selected = true;
+        sel.appendChild(o);
+      };
+
+      try{
+        const r = await fetch(`${API}/ollama/models`);
+        const data = await r.json();
+        let models = (data.ok && Array.isArray(data.models)) ? data.models : fallback;
+        if (!data.ok) models = fallback;
+
+        const chatDefault = models.includes("llama3.2:3b") ? "llama3.2:3b" : (models[0] || "llama3.2:3b");
+        const gateDefault = models.includes("smollm:360m") ? "smollm:360m" : (models.includes("smollm") ? "smollm" : (models[0] || "smollm:360m"));
+
+        models.forEach(m => addOpt(chatSel, m, m===chatDefault));
+        models.forEach(m => addOpt(gateSel, m, m===gateDefault));
+      } catch {
+        fallback.forEach(m => addOpt(chatSel, m, m==="llama3.2:3b"));
+        fallback.forEach(m => addOpt(gateSel, m, m==="smollm:360m"));
+      }
+    }
+
+    
+
+    function updateOpenRouterUI(){
+      const p = el("c_provider") ? el("c_provider").value : "ollama";
+      const gp = el("c_gate_provider") ? el("c_gate_provider").value : "ollama";
+      const show = (p === "openrouter") || (gp === "openrouter");
+      const card = el("openrouterCard");
+      if (card) card.style.display = show ? "block" : "none";
+
+      // helpful defaults
+      if (show){
+        if (el("c_or_model") && !el("c_or_model").value.trim()){
+          el("c_or_model").value = openrouterDefaultModel;
+        }
+      }
+    }
+
+    function initProviderSelectors(){
+      if (!el("c_provider") || !el("c_gate_provider")) return;
+      // default to server's default provider for new AIs
+      el("c_provider").value = (llmProviderDefault === "openrouter") ? "openrouter" : "ollama";
+      el("c_gate_provider").value = (llmProviderDefault === "openrouter") ? "openrouter" : "ollama";
+      el("c_provider").onchange = updateOpenRouterUI;
+      el("c_gate_provider").onchange = updateOpenRouterUI;
+      updateOpenRouterUI();
+    }async function loadCharacters(){
+      const r = await fetch(`${API}/characters`);
+      const data = await r.json();
+      charactersById = {};
+      data.forEach(c => charactersById[c.id] = c);
+    }
+
+    async function loadConversations(){
+      const r = await fetch(`${API}/conversations`);
+      const data = await r.json();
+      conversationsById = {};
+      data.forEach(c => conversationsById[c.id] = c);
+
+      const list = el("channelsList");
+      list.innerHTML = "";
+      data.forEach(conv => {
+        const d = document.createElement("div");
+        d.className = "channelItem" + (conv.id === activeConversationId ? " active" : "");
+        d.innerHTML = `
+          <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+            <span class="hash">#</span>
+            <div class="chName">${escapeHtml(conv.title)}</div>
+          </div>
+          <span class="pill">${conv.character_ids.length}</span>
+        `;
+        d.onclick = () => setActiveConversation(conv.id);
+        list.appendChild(d);
+      });
+
+      if (!activeConversationId && data.length) setActiveConversation(data[0].id);
+    }
+
+    // -------------------------
+    // Message rendering
+    // -------------------------
+    function clearChat(){
+      el("chat").innerHTML = "";
+      messagesById = {};
+      messageEls = {};
+      typing = {};
+      el("typingLine").textContent = "";
+    }
+
+    function makeMsgActions(m){
+      const wrap = document.createElement("div");
+      wrap.className = "msgActions";
+
+      const btnReact = document.createElement("button");
+      btnReact.className = "miniBtn";
+      btnReact.title = "React";
+      btnReact.textContent = "😀";
+      btnReact.onclick = (e) => { e.stopPropagation(); if(settings.enableReactions) openEmojiModal(m.id); };
+
+      const btnReply = document.createElement("button");
+      btnReply.className = "miniBtn";
+      btnReply.title = "Reply";
+      btnReply.textContent = "↩︎";
+      btnReply.onclick = (e) => { e.stopPropagation(); if(settings.enableReply) startReply(m.id); };
+
+      const btnEdit = document.createElement("button");
+      btnEdit.className = "miniBtn";
+      btnEdit.title = "Edit";
+      btnEdit.textContent = "✎";
+      btnEdit.onclick = (e) => { e.stopPropagation(); if(settings.enableEditing) startEdit(m.id); };
+
+      const btnPin = document.createElement("button");
+      btnPin.className = "miniBtn";
+      btnPin.title = "Pin";
+      btnPin.textContent = "📌";
+      btnPin.onclick = async (e) => { e.stopPropagation(); if(settings.enablePins) await togglePin(m.id); };
+
+      if (settings.enableReactions) wrap.appendChild(btnReact);
+      if (settings.enableReply) wrap.appendChild(btnReply);
+
+      // Only allow editing own messages
+      const editable = (m.author_type === "user" && m.author_id === "user");
+      if (settings.enableEditing && editable) wrap.appendChild(btnEdit);
+
+      if (settings.enablePins) wrap.appendChild(btnPin);
+      return wrap;
+    }
+
+    function renderReactions(m){
+      const cont = document.createElement("div");
+      cont.className = "reactions";
+      const rx = m.reactions || {};
+      const keys = Object.keys(rx);
+      keys.sort((a,b) => (rx[b]?.length||0) - (rx[a]?.length||0));
+      keys.forEach(emoji => {
+        const cnt = rx[emoji]?.length || 0;
+        if (!cnt) return;
+        const chip = document.createElement("div");
+        chip.className = "react";
+        chip.innerHTML = `<span>${escapeHtml(emoji)}</span><span class="cnt">${cnt}</span>`;
+        chip.onclick = () => {
+          if (!settings.enableReactions) return;
+          toggleReaction(m.id, emoji);
+        };
+        cont.appendChild(chip);
+      });
+      return cont;
+    }
+
+    function renderReplyPreview(m){
+      if (!m.reply_to) return null;
+      const target = messagesById[m.reply_to];
+      if (!target) return null;
+      const prev = document.createElement("div");
+      prev.className = "replyPreview";
+      prev.innerHTML = `Replying to <b>${escapeHtml(authorName(target))}</b>: ${escapeHtml((target.content||"").slice(0,120))}${(target.content||"").length>120?"…":""}`;
+      return prev;
+    }
+
+    function makeMessageElement(m){
+      const row = document.createElement("div");
+      row.className = "msgRow";
+      row.dataset.mid = m.id;
+
+      const av = authorAvatar(m);
+      const avatar = document.createElement("div");
+      avatar.className = "avatar";
+      avatar.style.display = settings.showAvatars ? "flex" : "none";
+      avatar.style.background = `${av.color}20`;
+      avatar.style.borderColor = `${av.color}55`;
+      avatar.textContent = av.letter;
+
+      const main = document.createElement("div");
+      main.className = "msgMain";
+
+      const header = document.createElement("div");
+      header.className = "msgHeader";
+
+      const author = document.createElement("div");
+      author.className = "author";
+      author.textContent = authorName(m);
+
+      const time = document.createElement("div");
+      time.className = "time";
+      time.style.display = settings.showTime ? "block" : "none";
+      time.textContent = fmtTime(m.ts);
+
+      const tags = document.createElement("div");
+      tags.className = "tags";
+      if (m.pinned) {
+        const t = document.createElement("span");
+        t.className = "tag";
+        t.textContent = "PINNED";
+        tags.appendChild(t);
+      }
+      if (m.edited_ts) {
+        const t = document.createElement("span");
+        t.className = "tag";
+        t.textContent = "edited";
+        tags.appendChild(t);
+      }
+
+      header.appendChild(author);
+      header.appendChild(time);
+      header.appendChild(tags);
+
+      const text = document.createElement("div");
+      text.className = "msgText";
+      text.innerHTML = renderText(m.content);
+
+      main.appendChild(header);
+
+      const rep = renderReplyPreview(m);
+      if (rep) main.appendChild(rep);
+
+      main.appendChild(text);
+
+      const rxEl = renderReactions(m);
+      if (rxEl.childNodes.length) main.appendChild(rxEl);
+
+      row.appendChild(avatar);
+      row.appendChild(main);
+      row.appendChild(makeMsgActions(m));
+
+      return row;
+    }
+
+    function addMessage(m, {scroll=true} = {}){
+      messagesById[m.id] = m;
+
+      // remove welcome on first message
+      const wb = el("welcomeBox");
+      if (wb) wb.style.display = "none";
+
+      const node = makeMessageElement(m);
+      messageEls[m.id] = node;
+      el("chat").appendChild(node);
+
+      if (scroll) {
+        el("chat").scrollTop = el("chat").scrollHeight;
+      }
+
+      playPing();
+      if (m.author_type !== "user") {
+        maybeNotify(`#${conversationsById[activeConversationId]?.title || "channel"}`, `${authorName(m)}: ${(m.content||"").slice(0,120)}`);
+      }
+    }
+
+    function updateMessage(m){
+      messagesById[m.id] = m;
+      const old = messageEls[m.id];
+      if (!old) return;
+      const newEl = makeMessageElement(m);
+      messageEls[m.id] = newEl;
+      old.replaceWith(newEl);
+    }
+
+    function jumpToMessage(id){
+      const node = messageEls[id];
+      if (!node) return;
+      node.scrollIntoView({behavior:"smooth", block:"center"});
+      node.style.outline = "2px solid rgba(88,101,242,.8)";
+      setTimeout(() => node.style.outline = "none", 900);
+    }
+
+    // -------------------------
+    // Typing indicator
+    // -------------------------
+    function renderTypingLine(){
+      const names = Object.entries(typing)
+        .filter(([_,v]) => v)
+        .map(([id,_]) => charactersById[id]?.name || "AI");
+      el("typingLine").textContent = names.length ? `${names.join(", ")} typing…` : "";
+    }
+
+    // -------------------------
+    // Actions (reactions, pins, edits, replies)
+    // -------------------------
+    async function toggleReaction(messageId, emoji){
+      try{
+        await fetch(`${API}/conversations/${activeConversationId}/messages/${messageId}/reactions`, {
+          method:"POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ emoji, actor_type:"user", actor_id:"user" })
+        });
+      } catch {}
+    }
+
+    async function togglePin(messageId){
+      try{
+        await fetch(`${API}/conversations/${activeConversationId}/messages/${messageId}/pin`, {
+          method:"POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ actor_type:"user", actor_id:"user" })
+        });
+      } catch {}
+      // refresh pins tab if open
+      if (activeRightTab === "pins") renderRightPanel();
+    }
+
+    function startReply(messageId){
+      if (!settings.enableReply) return;
+      replyToId = messageId;
+      const m = messagesById[messageId];
+      if (!m) return;
+      el("replyText").innerHTML = `Replying to <b>${escapeHtml(authorName(m))}</b>: ${escapeHtml((m.content||"").slice(0,120))}${(m.content||"").length>120?"…":""}`;
+      el("replyBar").style.display = "block";
+      el("msg").focus();
+    }
+
+    function cancelReply(){
+      replyToId = null;
+      el("replyBar").style.display = "none";
+      el("replyText").textContent = "";
+    }
+
+    async function startEdit(messageId){
+      if (!settings.enableEditing) return;
+      const m = messagesById[messageId];
+      if (!m) return;
+      if (!(m.author_type === "user" && m.author_id === "user")) return;
+
+      // simple inline edit: load content to composer and mark state
+      const current = (m.content || "");
+      el("msg").textContent = current;
+      el("msg").focus();
+
+      // temporary edit state
+      el("send").dataset.editing = messageId;
+      el("send").title = "Save edit";
+      el("send").textContent = "✓";
+    }
+
+    async function submitEdit(messageId, newText){
+      try{
+        await fetch(`${API}/conversations/${activeConversationId}/messages/${messageId}`, {
+          method:"PATCH",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ editor_type:"user", editor_id:"user", content: newText })
+        });
+      } catch {}
+    }
+
+    // -------------------------
+    // Send message
+    // -------------------------
+    async function sendMessage(){
+      const content = el("msg").textContent.trim();
+      if (!content || !activeConversationId) return;
+
+      // if editing
+      const editingId = el("send").dataset.editing;
+      if (editingId){
+        el("msg").textContent = "";
+        el("send").dataset.editing = "";
+        el("send").title = "Send";
+        el("send").textContent = "➤";
+        await submitEdit(editingId, content);
+        return;
+      }
+
+      el("msg").textContent = "";
+      const payload = { author_type:"user", author_id:"user", content };
+      if (settings.enableReply && replyToId) payload.reply_to = replyToId;
+      cancelReply();
+
+      await fetch(`${API}/conversations/${activeConversationId}/messages`, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(payload)
+      });
+    }
+
+    // -------------------------
+    // Create character / channel
+    // -------------------------
+    async function createCharacter(){
+      const name = el("c_name").value.trim();
+      if (!name) return alert("Name required");
+
+      const provider = el("c_provider") ? el("c_provider").value : "ollama";
+      const gate_provider = el("c_gate_provider") ? el("c_gate_provider").value : "ollama";
+
+      // pick model fields based on provider
+      const model = (provider === "openrouter")
+        ? ((el("c_or_model")?.value || "").trim() || openrouterDefaultModel)
+        : el("c_model").value;
+
+      const gate_model = (gate_provider === "openrouter")
+        ? ((el("c_or_gate")?.value || "").trim() || (provider === "openrouter" ? model : openrouterDefaultModel))
+        : el("c_gate").value;
+
+      const system_prompt = el("c_sys").value.trim() || `You are ${name}.`;
+      const about = el("c_about").value.trim();
+      const profile_color = el("c_color").value.trim();
+      const gate_interval_seconds = parseInt(el("c_interval").value || "10", 10);
+      const humanize_pacing = !!el("c_humanize").checked;
+      const split_messages = !!el("c_split").checked;
+
+      await fetch(`${API}/characters`, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+          name,
+          provider,
+          model,
+          gate_provider,
+          gate_model,
+          system_prompt,
+          gate_interval_seconds: isFinite(gate_interval_seconds) ? gate_interval_seconds : 10,
+          enabled: true,
+          about,
+          profile_color,
+          humanize_pacing,
+          split_messages
+        })
+      });
+
+      el("c_name").value = "";
+      el("c_sys").value = "";
+      el("c_about").value = "";
+      el("c_color").value = "";
+      el("c_interval").value = "10";
+      el("c_humanize").checked = false;
+      el("c_split").checked = false;
+
+      // keep OpenRouter model typed values, but refresh the app state
+      await boot();
+    }
+
+
+
+    async function createChannel(){
+      const title = prompt("Channel name (no #):", "new-channel");
+      if (!title) return;
+      await fetch(`${API}/conversations`, {
+        method:"POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ title: title.replaceAll(" ","-").toLowerCase(), character_ids: [] })
+      });
+      await boot();
+    }
+
+    // -------------------------
+    // Dev feed
+    // -------------------------
+    function addDevEvent(evt){
+      const root = el("devLog");
+      if (!root) return;
+
+      const stage = evt.stage || "event";
+      const d = evt.data || {};
+      const who = d.character?.name ? d.character.name : "";
+      const when = fmtTime(evt.ts);
+
+      let title = stage;
+      let lines = [];
+      let accent = "";
+
+      const provider = d.provider_label || d.gate_provider_label || d.provider || d.gate_provider || "";
+      const model = d.model || d.gate_model || "";
+
+      if (stage === "gate_check_start"){
+        title = "Gate check started";
+        lines.push(`Character: ${who || "—"}`);
+        if (provider) lines.push(`Gate backend: ${provider}`);
+        if (d.gate_model) lines.push(`Gate model: ${d.gate_model}`);
+        if (d.interval_s != null) lines.push(`Interval: ${d.interval_s}s`);
+        accent = "var(--yellow)";
+      } else if (stage === "gate_result"){
+        const respond = !!d.respond;
+        title = respond ? "Gate: ✅ will respond" : "Gate: ❌ skip";
+        lines.push(`Character: ${who || "—"}`);
+        if (provider) lines.push(`Gate backend: ${provider}`);
+        if (d.gate_model) lines.push(`Gate model: ${d.gate_model}`);
+        if (d.decision) lines.push(`Decision: ${d.decision}`);
+        if (d.yes_count != null || d.no_count != null) lines.push(`Votes: YES ${d.yes_count ?? 0} • NO ${d.no_count ?? 0}`);
+        if (d.raw) lines.push(`Raw: ${d.raw}`);
+        if (d.prompt_preview) lines.push(`Prompt preview: ${d.prompt_preview}`);
+        accent = respond ? "var(--green)" : "var(--red)";
+      } else if (stage === "generate_start"){
+        title = "Reply generation started";
+        lines.push(`Character: ${who || "—"}`);
+        if (provider) lines.push(`Backend: ${provider}`);
+        if (model) lines.push(`Model: ${model}`);
+        accent = "var(--blue)";
+      } else if (stage === "chat_prompt_preview"){
+        title = "Prompt preview";
+        lines.push(`Character: ${who || "—"}`);
+        if (provider) lines.push(`Backend: ${provider}`);
+        if (model) lines.push(`Model: ${model}`);
+        if (d.preview) lines.push(d.preview);
+      } else if (stage === "draft_reply"){
+        title = "Draft reply";
+        lines.push(`Character: ${who || "—"}`);
+        if (d.reply) lines.push(d.reply);
+      } else if (stage === "message_committed"){
+        title = "Message committed";
+        lines.push(`Character: ${who || "—"}`);
+        if (d.message_id) lines.push(`Message ID: ${d.message_id}`);
+      } else if (stage === "ollama_offline"){
+        title = "Ollama offline";
+        if (d.note) lines.push(d.note);
+        accent = "var(--red)";
+      } else if (stage === "error"){
+        title = "Error";
+        if (d.note) lines.push(d.note);
+        if (d.error) lines.push(d.error);
+        accent = "var(--red)";
+      } else {
+        // generic fallback
+        if (who) lines.push(`Character: ${who}`);
+        if (provider) lines.push(`Backend: ${provider}`);
+        if (model) lines.push(`Model: ${model}`);
+        if (d.note) lines.push(d.note);
+      }
+
+      const wrap = document.createElement("div");
+      wrap.className = "card";
+      wrap.style.marginBottom = "10px";
+
+      const bullets = lines
+        .filter(Boolean)
+        .map((t, i) => `<div class="tiny" style="white-space:pre-wrap; margin-top:${i?6:0}px;">${escapeHtml(String(t))}</div>`)
+        .join("");
+
+      const raw = JSON.stringify(d || {}, null, 2);
+
+      wrap.innerHTML = `
+        <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
+          <div style="font-weight:900">${escapeHtml(title)}</div>
+          <div class="tiny">${escapeHtml(who ? who + " • " : "")}${escapeHtml(when)}</div>
+        </div>
+        ${accent ? `<div style="height:3px; background:${accent}; border-radius:999px; margin-top:8px;"></div>` : ""}
+        <div style="margin-top:8px;">${bullets}</div>
+        <details style="margin-top:10px;">
+          <summary class="tiny">Raw event</summary>
+          <div class="tiny" style="white-space:pre-wrap; margin-top:8px;">${escapeHtml(raw)}</div>
+        </details>
+      `;
+
+      root.prepend(wrap);
+      // cap
+      while (root.children.length > 60) root.removeChild(root.lastChild);
+    }
+
+    function setDevMode(on){
+      devEnabled = !!on;
+      el("tabDev").style.display = devEnabled ? "block" : "none";
+      if (!devEnabled && activeRightTab === "dev") setRightTab("members");
+      if (ws && ws.readyState === 1) ws.send(JSON.stringify({type:"set_debug", enabled: devEnabled}));
+      renderRightPanel();
+    }
+
+    // -------------------------
+    // Active conversation
+    // -------------------------
+    async function setActiveConversation(convId){
+      activeConversationId = convId;
+
+      const conv = conversationsById[convId];
+      el("activeTitle").textContent = conv ? conv.title : "—";
+      el("activeMeta").textContent = conv ? `AI members: ${(conv.character_ids||[]).map(id => charactersById[id]?.name || "???").join(", ")}` : "";
+
+      clearChat();
+      applyUISettings();
+
+      // close old ws
+      if (ws) ws.close();
+
+      const wsProto = (location.protocol === "https:") ? "wss" : "ws";
+      ws = new WebSocket(`${wsProto}://${location.host}/ws/${activeConversationId}`);
+
+      ws.onopen = () => {
+        setConnStatus("live");
+        if (devEnabled) ws.send(JSON.stringify({type:"set_debug", enabled:true}));
+      };
+      ws.onclose = () => setConnStatus("offline");
+      ws.onerror = () => setConnStatus("error");
+
+      ws.onmessage = (ev) => {
+        const msg = JSON.parse(ev.data);
+
+        if (msg.type === "init") {
+          (msg.data.messages || []).forEach(m => addMessage(m, {scroll:false}));
+          members = msg.data.members || [];
+          el("memberCount").textContent = `${members.length}`;
+          renderRightPanel();
+          el("chat").scrollTop = el("chat").scrollHeight;
+        }
+
+        if (msg.type === "message") {
+          addMessage(msg.data);
+        }
+
+        if (msg.type === "message_update") {
+          updateMessage(msg.data);
+        }
+
+        if (msg.type === "typing") {
+          typing[msg.data.character_id] = !!msg.data.typing;
+          renderTypingLine();
+        }
+
+        if (msg.type === "presence") {
+          if (msg.data?.conversation_id !== activeConversationId) return;
+          members = msg.data.members || [];
+          el("memberCount").textContent = `${members.length}`;
+          if (activeRightTab === "members") renderRightPanel();
+        }
+
+        if (msg.type === "debug") {
+          if (activeRightTab !== "dev") return;
+          addDevEvent(msg.data);
+        }
+
+        if (msg.type === "debug_ack") {
+          // no-op visual
+        }
+      };
+
+      // rerender channel list active state
+      loadConversations();
+    }
+
+    // -------------------------
+    // Search
+    // -------------------------
+    async function runSearch(){
+      const q = el("searchInput").value.trim();
+      if (!q || !activeConversationId) return;
+      setRightTab("pins"); // reuse pins tab area for results feel
+      el("rightBody").innerHTML = `<div class="tiny">Searching for <b>${escapeHtml(q)}</b>…</div>`;
+      try{
+        const r = await fetch(`${API}/conversations/${activeConversationId}/search?q=${encodeURIComponent(q)}&limit=50`);
+        const res = await r.json();
+        const body = el("rightBody");
+        body.innerHTML = "";
+        if (!res.length){
+          body.innerHTML = `<div class="tiny">No results.</div>`;
+          return;
+        }
+        res.reverse().forEach(m => {
+          const div = document.createElement("div");
+          div.className = "card";
+          div.style.marginBottom = "10px";
+          div.innerHTML = `
+            <div style="display:flex; justify-content:space-between; gap:10px;">
+              <div style="font-weight:900">${escapeHtml(authorName(m))}</div>
+              <div class="tiny">${escapeHtml(fmtTime(m.ts))}</div>
+            </div>
+            <div class="tiny" style="margin-top:8px; white-space:pre-wrap">${escapeHtml((m.content||"").slice(0,220))}${(m.content||"").length>220?"…":""}</div>
+            <div style="margin-top:10px;">
+              <button class="btn" data-jump="${escapeHtml(m.id)}">Jump</button>
+            </div>
+          `;
+          div.querySelector("[data-jump]").onclick = () => jumpToMessage(m.id);
+          body.appendChild(div);
+        });
+      } catch {
+        el("rightBody").innerHTML = `<div class="tiny">Search failed.</div>`;
+      }
+    }
+
+    // -------------------------
+    // Emoji grid
+    // -------------------------
+    function buildEmojiGrid(){
+      const grid = el("emojiGrid");
+      grid.innerHTML = "";
+      QUICK_EMOJI.forEach(e => {
+        const b = document.createElement("button");
+        b.className = "btn";
+        b.style.width = "56px";
+        b.style.height = "46px";
+        b.style.fontSize = "20px";
+        b.textContent = e;
+        b.onclick = () => {
+          if (!emojiTargetMsgId) return;
+          toggleReaction(emojiTargetMsgId, e);
+          closeEmojiModal();
+        };
+        grid.appendChild(b);
+      });
+    }
+
+    // -------------------------
+    // Boot
+    // -------------------------
+    async function boot(){
+      await loadHealth();
+      await loadOllamaModels();
+      initProviderSelectors();
+      await loadCharacters();
+      await loadConversations();
+      applyUISettings();
+    }
+
+    // -------------------------
+    // Wire up UI
+    // -------------------------
+    el("refreshAll").onclick = () => boot();
+    el("createChar").onclick = () => createCharacter();
+    el("newChannel").onclick = () => createChannel();
+
+    el("send").onclick = () => sendMessage();
+    el("btnPins").onclick = () => setRightTab("pins");
+    el("btnMembers").onclick = () => { settings.showMembers = !settings.showMembers; saveSettings(settings); applyUISettings(); };
+
+    el("tabMembers").onclick = () => setRightTab("members");
+    el("tabPins").onclick = () => setRightTab("pins");
+    el("tabDev").onclick = () => setRightTab("dev");
+
+    el("openSettings").onclick = () => openSettings();
+    el("closeSettings").onclick = () => closeSettings();
+    el("settingsBack").onclick = (e) => { if (e.target === el("settingsBack")) closeSettings(); };
+
+    el("devToggle").onchange = (e) => setDevMode(e.target.checked);
+
+    el("btnEmoji").onclick = () => {
+      if (!settings.enableReactions){
+        openSettings();
+        return;
+      }
+      // if user has a reply target, use it; else do nothing
+      if (!replyToId){
+        alert("Tip: hover a message and click 😀 to react. Or reply first to select a target.");
+        return;
+      }
+      openEmojiModal(replyToId);
+    };
+
+    el("closeEmoji").onclick = () => closeEmojiModal();
+    el("emojiBack").onclick = (e) => { if (e.target === el("emojiBack")) closeEmojiModal(); };
+
+    el("cancelReply").onclick = () => cancelReply();
+
+    el("searchInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") runSearch();
+    });
+
+    // composer key handling
+    el("msg").addEventListener("keydown", (e) => {
+      if (!settings.enterToSend) return;
+      if (e.key === "Enter" && !e.shiftKey){
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Settings toggle handlers
+    const bind = (id, key) => {
+      el(id).onchange = (e) => {
+        settings[key] = !!e.target.checked;
+        saveSettings(settings);
+        applyUISettings();
+        // re-render messages (some settings affect layout)
+        Object.values(messagesById).forEach(m => updateMessage(m));
+        renderRightPanel();
+      };
+    };
+    bind("s_showMembers", "showMembers");
+    bind("s_reactions", "enableReactions");
+    bind("s_editing", "enableEditing");
+    bind("s_pins", "enablePins");
+    bind("s_reply", "enableReply");
+    bind("s_markdown", "safeMarkdown");
+    bind("s_sounds", "sounds");
+    bind("s_notify", "notify");
+    bind("s_compact", "compact");
+    bind("s_time", "showTime");
+    bind("s_avatars", "showAvatars");
+    bind("s_enterSend", "enterToSend");
+
+    // Build emoji grid
+    buildEmojiGrid();
+
+    // Start
+    applyUISettings();
+    boot();
+  </script>
+</body>
+</html>
