@@ -413,6 +413,23 @@
       background: rgba(15,17,23,.82);
       backdrop-filter: blur(8px);
     }
+    .usernameRow{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      margin-bottom:8px;
+    }
+    .usernameRow .label{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:800;
+      letter-spacing:.02em;
+      white-space:nowrap;
+    }
+    .usernameInput{
+      width:220px;
+      max-width:50vw;
+    }
     .replyBar{
       display:none;
       margin-bottom:8px;
@@ -553,6 +570,14 @@
       border:1px solid #273055; background:#121528;
       color:var(--text); cursor:pointer;
     }
+    .profileGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    .profileGrid .full{
+      grid-column: 1 / -1;
+    }
 
     .toggle{
       display:flex; align-items:center; justify-content:space-between;
@@ -566,6 +591,8 @@
     .toggle label{ font-weight:800; }
     .toggle .sub{ font-size:12px; color:var(--muted); margin-top:2px; font-weight:600; }
     .toggle input[type="checkbox"]{ width:18px; height:18px; }
+    .devBar{ display:flex; gap:8px; align-items:center; margin-bottom:10px; }
+    .devBar .btn{ padding:6px 10px; font-size:12px; }
 
     /* Responsive */
     @media (max-width: 980px){
@@ -632,6 +659,7 @@
               <select id="c_provider">
                 <option value="ollama">Ollama (local)</option>
                 <option value="openrouter">OpenRouter (cloud)</option>
+                <option value="puter">Puter (free)</option>
               </select>
               <select id="c_model"></select>
             </div>
@@ -639,6 +667,7 @@
               <select id="c_gate_provider">
                 <option value="ollama">Gate: Ollama (local)</option>
                 <option value="openrouter">Gate: OpenRouter (cloud)</option>
+                <option value="puter">Gate: Puter (free)</option>
               </select>
               <select id="c_gate"></select>
             </div>
@@ -653,10 +682,23 @@
               <div class="tiny" style="margin-top:8px;">
                 Tip: Set <b>OPENROUTER_API_KEY</b> in your server environment. (We don't store keys in the browser.)
               </div>
+              <div class="tiny" id="openrouterStatus" style="margin-top:8px;"></div>
+            </div>
+            <div class="card" id="puterCard" style="margin-top:10px; display:none;">
+              <div style="font-weight:900">Puter</div>
+              <div class="tiny" style="margin-top:6px;">Models are typed, not auto-listed. Example: <b>auto</b></div>
+              <div class="row2" style="margin-top:10px;">
+                <input id="c_puter_model" placeholder="Chat model (Puter) optional" />
+                <input id="c_puter_gate" placeholder="Gate model (Puter) optional (leave blank = use gate dropdown or same as chat)" />
+              </div>
+              <div class="tiny" style="margin-top:8px;">
+                Tip: Set <b>PUTER_BASE_URL</b> or <b>PUTER_API_KEY</b> on the server if needed.
+              </div>
+              <div class="tiny" id="puterStatus" style="margin-top:8px;"></div>
             </div>
             <div class="row2" style="margin-top:10px;">
               <input id="c_color" placeholder='Profile color (e.g. #5865F2) optional' />
-              <input id="c_interval" type="number" min="3" max="120" value="10" placeholder="Gate interval seconds" />
+              <input id="c_interval" type="number" min="3" max="120" value="30" placeholder="Gate interval seconds" />
             </div>
 
             <textarea id="c_sys" placeholder="System prompt" style="margin-top:10px;"></textarea>
@@ -664,7 +706,6 @@
             <div class="row" style="margin-top:10px; justify-content:space-between;">
               <div class="row" style="gap:10px;">
                 <label class="tiny"><input type="checkbox" id="c_humanize" /> human-like pacing</label>
-                <label class="tiny"><input type="checkbox" id="c_split" /> split messages</label>
               </div>
               <button class="btn primary" id="createChar">Add</button>
             </div>
@@ -683,6 +724,13 @@
               <div class="sub">Gate decisions, prompt previews, draft replies (optional)</div>
             </div>
             <input type="checkbox" id="devToggle"/>
+          </div>
+          <div class="toggle">
+            <div>
+              <label>Pause all AI calls</label>
+              <div class="sub">Stop all LLM requests until resumed</div>
+            </div>
+            <input type="checkbox" id="devPauseAll"/>
           </div>
         </details>
       </div>
@@ -722,6 +770,11 @@
             <div id="replyText" style="min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></div>
             <button class="x" id="cancelReply" title="Cancel reply">✕</button>
           </div>
+        </div>
+
+        <div class="usernameRow">
+          <div class="label">Username</div>
+          <input id="usernameQuick" class="usernameInput" placeholder="Your name (e.g. Tarno)" />
         </div>
 
         <div class="composerRow">
@@ -852,6 +905,22 @@
         </div>
 
         <div class="card" style="margin-top:12px;">
+          <div style="font-weight:900">Username (AI context)</div>
+          <div class="tiny" style="margin-top:6px;">Used in the AI prompt as <b>Name:</b></div>
+          <input id="s_username" placeholder="Your name (e.g. Tarno)" style="margin-top:10px;" />
+        </div>
+
+        <div class="card" style="margin-top:12px;">
+          <div style="font-weight:900">Ollama Auto-Start</div>
+          <div class="tiny" style="margin-top:6px;">Controls when the server tries to start Ollama.</div>
+          <select id="s_ollama_start" style="margin-top:10px;">
+            <option value="always">Always</option>
+            <option value="on_demand">On-demand (only when needed)</option>
+            <option value="never">Never</option>
+          </select>
+        </div>
+
+        <div class="card" style="margin-top:12px;">
           <div style="font-weight:900">Quick tips</div>
           <div class="tiny" style="margin-top:8px;">
             • Reply by hovering a message and clicking ↩︎ (if enabled)<br/>
@@ -859,6 +928,48 @@
             • Search with the box in the top bar (Enter)<br/>
             • Pins show in the right panel (if enabled)
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Profile Modal -->
+  <div class="modalBack" id="profileBack">
+    <div class="modal">
+      <div class="modalHead">
+        <div style="font-weight:900">AI Profile</div>
+        <button class="closeX" id="closeProfile">X</button>
+      </div>
+      <div class="modalBody">
+        <div class="profileGrid">
+          <input id="p_name" placeholder="Name" />
+          <input id="p_about" placeholder="About" />
+          <select id="p_provider">
+            <option value="ollama">Ollama (local)</option>
+            <option value="openrouter">OpenRouter (cloud)</option>
+            <option value="puter">Puter (free)</option>
+          </select>
+          <input id="p_model" placeholder="Chat model" />
+          <select id="p_gate_provider">
+            <option value="ollama">Gate: Ollama (local)</option>
+            <option value="openrouter">Gate: OpenRouter (cloud)</option>
+            <option value="puter">Gate: Puter (free)</option>
+          </select>
+          <input id="p_gate_model" placeholder="Gate model" />
+          <input id="p_interval" type="number" min="3" max="120" placeholder="Gate interval seconds" />
+          <input id="p_color" placeholder="Profile color (e.g. #5865F2)" />
+          <label class="tiny"><input type="checkbox" id="p_enabled" /> enabled</label>
+          <textarea id="p_sys" class="full" placeholder="System prompt"></textarea>
+        </div>
+
+        <div class="card" style="margin-top:12px;">
+          <div style="font-weight:900">Servers</div>
+          <div class="tiny" style="margin-top:6px;">Choose which servers (channels) this AI is in.</div>
+          <div id="profileConversations" style="margin-top:8px;"></div>
+        </div>
+
+        <div class="row" style="margin-top:12px; justify-content:flex-end;">
+          <button class="btn" id="saveProfile">Save</button>
         </div>
       </div>
     </div>
@@ -896,7 +1007,8 @@
       compact: false,
       showTime: true,
       showAvatars: true,
-      enterToSend: true
+      enterToSend: true,
+      username: "User"
     };
 
     function loadSettings(){
@@ -932,6 +1044,13 @@
     let devEnabled = false;
     let llmProviderDefault = "ollama";
     let openrouterDefaultModel = "mistralai/devstral-2512:free";
+    let openrouterConfigured = false;
+    let puterDefaultModel = "";
+    let puterConfigured = true;
+    let devPaused = false;
+    let pauseAllCalls = false;
+    let activeProfileId = null;
+    let ollamaStartMode = "on_demand";
 
     let activeRightTab = "members";
 
@@ -940,10 +1059,97 @@
     let emojiTargetMsgId = null;
 
     const el = (id) => document.getElementById(id);
+    const JSON_HEADERS = {"Content-Type":"application/json"};
 
     // -------------------------
     // Utilities
     // -------------------------
+    function safeJsonParse(text){
+      if (!text) return null;
+      try { return JSON.parse(text); } catch { return null; }
+    }
+
+    async function apiJson(path, {method="GET", body} = {}){
+      const opts = { method, headers: JSON_HEADERS };
+      if (body !== undefined) opts.body = JSON.stringify(body);
+      const res = await fetch(`${API}${path}`, opts);
+      const data = safeJsonParse(await res.text());
+      if (!res.ok) throw new Error((data && data.error) || res.statusText);
+      return data;
+    }
+
+    async function apiSend(path, body, method="POST"){
+      try{
+        await apiJson(path, {method, body});
+      } catch {}
+    }
+
+    async function loadPauseState(){
+      try{
+        const res = await apiJson("/debug/pause");
+        pauseAllCalls = !!res.enabled;
+        if (el("devPauseAll")) el("devPauseAll").checked = pauseAllCalls;
+      } catch {}
+    }
+
+    async function loadOllamaStartMode(){
+      try{
+        const res = await apiJson("/settings/ollama_start");
+        ollamaStartMode = res.mode || "on_demand";
+        if (el("s_ollama_start")) el("s_ollama_start").value = ollamaStartMode;
+      } catch {}
+    }
+
+    function setOllamaStartMode(mode){
+      ollamaStartMode = mode || "on_demand";
+      if (el("s_ollama_start")) el("s_ollama_start").value = ollamaStartMode;
+      apiSend("/settings/ollama_start", {mode: ollamaStartMode});
+    }
+
+    function setPauseAllCalls(on){
+      pauseAllCalls = !!on;
+      if (el("devPauseAll")) el("devPauseAll").checked = pauseAllCalls;
+      apiSend("/debug/pause", {enabled: pauseAllCalls});
+    }
+
+    function setUsername(value){
+      settings.username = (value || "User").trim() || "User";
+      saveSettings(settings);
+      if (el("s_username")) el("s_username").value = settings.username;
+      if (el("usernameQuick")) el("usernameQuick").value = settings.username;
+    }
+
+    let userProfileTimer = null;
+    function scheduleUserProfileSync(){
+      if (userProfileTimer) clearTimeout(userProfileTimer);
+      userProfileTimer = setTimeout(async () => {
+        userProfileTimer = null;
+        await pushUserProfile();
+      }, 300);
+    }
+
+    async function pushUserProfile(){
+      const username = (settings.username || "User").trim() || "User";
+      try{
+        await apiSend("/user/profile", {username});
+      } catch {
+        // ignore if offline
+      }
+    }
+
+    function slugify(s){
+      return (s || "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+    }
+
+    function toInt(v, fallback){
+      const n = parseInt(v, 10);
+      return Number.isFinite(n) ? n : fallback;
+    }
+
     function escapeHtml(s){
       return (s ?? "").toString()
         .replaceAll("&","&amp;")
@@ -966,7 +1172,11 @@
     }
 
     function authorName(m){
-      if (m.author_type === "user") return "You";
+      if (m.author_type === "user"){
+        const fromMsg = (m.author_id || "").trim();
+        if (fromMsg && fromMsg.toLowerCase() !== "user") return fromMsg;
+        return (settings.username || "You").trim() || "You";
+      }
       return charactersById[m.author_id]?.name || "Character";
     }
 
@@ -1031,6 +1241,7 @@
       // update placeholders
       const ch = conversationsById[activeConversationId];
       el("msg").setAttribute("data-placeholder", ch ? `Message #${ch.title}` : "Message #channel");
+      if (el("usernameQuick")) el("usernameQuick").value = settings.username || "User";
     }
 
     function syncSettingsModal(){
@@ -1046,6 +1257,9 @@
       el("s_time").checked = !!settings.showTime;
       el("s_avatars").checked = !!settings.showAvatars;
       el("s_enterSend").checked = !!settings.enterToSend;
+      if (el("s_username")) el("s_username").value = settings.username || "User";
+      if (el("usernameQuick")) el("usernameQuick").value = settings.username || "User";
+      if (el("s_ollama_start")) el("s_ollama_start").value = ollamaStartMode;
     }
 
     function openSettings(){
@@ -1063,6 +1277,94 @@
     function closeEmojiModal(){
       emojiTargetMsgId = null;
       el("emojiBack").style.display = "none";
+    }
+
+    function openProfile(charId){
+      const c = charactersById[charId];
+      if (!c) return;
+      activeProfileId = charId;
+
+      el("p_name").value = c.name || "";
+      el("p_about").value = c.about || "";
+      el("p_provider").value = c.provider || "ollama";
+      el("p_model").value = c.model || "";
+      el("p_gate_provider").value = c.gate_provider || c.provider || "ollama";
+      el("p_gate_model").value = c.gate_model || "";
+      el("p_interval").value = c.gate_interval_seconds || 30;
+      el("p_color").value = c.profile_color || "";
+      el("p_enabled").checked = !!c.enabled;
+      el("p_sys").value = c.system_prompt || "";
+
+      renderProfileConversations(charId);
+      el("profileBack").style.display = "flex";
+    }
+
+    function closeProfile(){
+      activeProfileId = null;
+      el("profileBack").style.display = "none";
+    }
+
+    function renderProfileConversations(charId){
+      const root = el("profileConversations");
+      root.innerHTML = "";
+      const convs = Object.values(conversationsById || {});
+      if (!convs.length){
+        root.innerHTML = `<div class="tiny">No servers found.</div>`;
+        return;
+      }
+      convs.forEach(conv => {
+        const id = conv.id;
+        const checked = (conv.character_ids || []).includes(charId);
+        const row = document.createElement("div");
+        row.className = "row";
+        row.style.marginBottom = "6px";
+        row.innerHTML = `
+          <label class="tiny">
+            <input type="checkbox" data-conv="${escapeHtml(id)}" ${checked ? "checked" : ""} />
+            #${escapeHtml(conv.title || "channel")}
+          </label>
+        `;
+        root.appendChild(row);
+      });
+    }
+
+    async function saveProfile(){
+      if (!activeProfileId) return;
+      const payload = {
+        name: (el("p_name").value || "").trim(),
+        about: (el("p_about").value || "").trim(),
+        provider: el("p_provider").value,
+        model: (el("p_model").value || "").trim(),
+        gate_provider: el("p_gate_provider").value,
+        gate_model: (el("p_gate_model").value || "").trim(),
+        gate_interval_seconds: toInt(el("p_interval").value || "30", 30),
+        profile_color: (el("p_color").value || "").trim(),
+        enabled: !!el("p_enabled").checked,
+        system_prompt: (el("p_sys").value || "").trim(),
+      };
+      await apiSend(`/characters/${activeProfileId}`, payload, "PATCH");
+
+      const boxes = Array.from(el("profileConversations").querySelectorAll("input[data-conv]"));
+      for (const box of boxes){
+        const convId = box.getAttribute("data-conv");
+        const conv = conversationsById[convId];
+        if (!conv) continue;
+        const ids = Array.from(conv.character_ids || []);
+        const has = ids.includes(activeProfileId);
+        if (box.checked && !has){
+          ids.push(activeProfileId);
+        } else if (!box.checked && has){
+          const next = ids.filter(id => id !== activeProfileId);
+          ids.length = 0;
+          next.forEach(id => ids.push(id));
+        }
+        if (JSON.stringify(ids) !== JSON.stringify(conv.character_ids || [])){
+          await apiSend(`/conversations/${convId}`, {character_ids: ids}, "PATCH");
+        }
+      }
+
+      closeProfile();
+      await boot();
     }
 
     // -------------------------
@@ -1106,6 +1408,7 @@
             </div>
             ${dot}
           `;
+          div.onclick = () => openProfile(m.id);
           list.appendChild(div);
         });
         body.appendChild(list);
@@ -1117,16 +1420,20 @@
           body.innerHTML = `<div class="tiny">Pinning is disabled in Settings.</div>`;
           return;
         }
+        if (!activeConversationId){
+          body.innerHTML = `<div class="tiny">No active channel.</div>`;
+          return;
+        }
         body.innerHTML = `<div class="tiny">Loading pins…</div>`;
         try{
-          const r = await fetch(`${API}/conversations/${activeConversationId}/pins`);
-          const pins = await r.json();
+          const pins = await apiJson(`/conversations/${activeConversationId}/pins`);
+          const listPins = Array.isArray(pins) ? pins : [];
           body.innerHTML = "";
-          if (!pins.length){
+          if (!listPins.length){
             body.innerHTML = `<div class="tiny">No pinned messages yet.</div>`;
             return;
           }
-          pins.reverse().forEach(p => {
+          listPins.reverse().forEach(p => {
             const div = document.createElement("div");
             div.className = "card";
             div.style.marginBottom = "10px";
@@ -1154,9 +1461,21 @@
           body.innerHTML = `<div class="tiny">Dev feed is off.</div>`;
           return;
         }
-        const devLog = document.createElement("div");
-        devLog.id = "devLog";
-        body.appendChild(devLog);
+        body.innerHTML = `
+          <div class="devBar">
+            <span class="pill" id="devStatus">live</span>
+            <div style="flex:1"></div>
+            <button class="btn" id="devPauseBtn">Pause</button>
+            <button class="btn" id="devClearBtn">Clear</button>
+          </div>
+          <div id="devLog"></div>
+        `;
+        updateDevStatus();
+        el("devPauseBtn").onclick = () => { devPaused = !devPaused; updateDevStatus(); };
+        el("devClearBtn").onclick = () => {
+          const log = el("devLog");
+          if (log) log.innerHTML = "";
+        };
         // existing events are appended directly as they arrive
         return;
       }
@@ -1167,19 +1486,22 @@
     // -------------------------
     async function loadHealth(){
       try{
-        const r = await fetch(`${API}/health`);
-        const h = await r.json();
+        const h = await apiJson("/health");
 
         // capture defaults for UI
         if (h.llm_provider_default) llmProviderDefault = h.llm_provider_default;
         if (h.defaults?.openrouter_default_model) openrouterDefaultModel = h.defaults.openrouter_default_model;
+        if (h.defaults?.puter_default_model != null) puterDefaultModel = h.defaults.puter_default_model;
 
+        openrouterConfigured = !!h.openrouter_configured;
+        puterConfigured = (h.puter_configured !== undefined) ? !!h.puter_configured : true;
         const oll = h.ollama_up ? "online" : "offline";
-        const or = h.openrouter_configured ? "configured" : "missing key";
-        const def = llmProviderDefault === "openrouter" ? "OpenRouter" : "Ollama";
+        const or = openrouterConfigured ? "configured" : "missing key";
+        const pr = puterConfigured ? "available" : "unavailable";
+        const def = llmProviderDefault === "openrouter" ? "OpenRouter" : (llmProviderDefault === "puter" ? "Puter" : "Ollama");
 
         el("healthLine").innerHTML =
-          `Ollama: <b>${oll}</b> • OpenRouter: <b>${or}</b> • Default: <b>${def}</b>`;
+          `Ollama: <b>${oll}</b> • OpenRouter: <b>${or}</b> • Puter: <b>${pr}</b> • Default: <b>${def}</b>`;
       } catch {
         el("healthLine").textContent = "Health check failed";
       }
@@ -1200,10 +1522,10 @@
       };
 
       try{
-        const r = await fetch(`${API}/ollama/models`);
-        const data = await r.json();
-        let models = (data.ok && Array.isArray(data.models)) ? data.models : fallback;
-        if (!data.ok) models = fallback;
+        const data = await apiJson("/ollama/models");
+        const ok = !!(data && data.ok);
+        let models = (ok && Array.isArray(data.models)) ? data.models : fallback;
+        if (!ok) models = fallback;
 
         const chatDefault = models.includes("llama3.2:3b") ? "llama3.2:3b" : (models[0] || "llama3.2:3b");
         const gateDefault = models.includes("smollm:360m") ? "smollm:360m" : (models.includes("smollm") ? "smollm" : (models[0] || "smollm:360m"));
@@ -1218,17 +1540,41 @@
 
     
 
-    function updateOpenRouterUI(){
+    function updateProviderUI(){
       const p = el("c_provider") ? el("c_provider").value : "ollama";
       const gp = el("c_gate_provider") ? el("c_gate_provider").value : "ollama";
-      const show = (p === "openrouter") || (gp === "openrouter");
-      const card = el("openrouterCard");
-      if (card) card.style.display = show ? "block" : "none";
+
+      const showOpenRouter = (p === "openrouter") || (gp === "openrouter");
+      const orCard = el("openrouterCard");
+      if (orCard) orCard.style.display = showOpenRouter ? "block" : "none";
+      const orStatus = el("openrouterStatus");
+      if (orStatus){
+        orStatus.textContent = openrouterConfigured
+          ? "OpenRouter key detected."
+          : "OpenRouter key missing. Set OPENROUTER_API_KEY on the server.";
+        orStatus.style.color = openrouterConfigured ? "var(--good)" : "var(--warn)";
+      }
+
+      const showPuter = (p === "puter") || (gp === "puter");
+      const puterCard = el("puterCard");
+      if (puterCard) puterCard.style.display = showPuter ? "block" : "none";
+      const puterStatus = el("puterStatus");
+      if (puterStatus){
+        puterStatus.textContent = puterConfigured
+          ? "Puter is available."
+          : "Puter unavailable. Check PUTER_BASE_URL on the server.";
+        puterStatus.style.color = puterConfigured ? "var(--good)" : "var(--warn)";
+      }
 
       // helpful defaults
-      if (show){
+      if (showOpenRouter){
         if (el("c_or_model") && !el("c_or_model").value.trim()){
           el("c_or_model").value = openrouterDefaultModel;
+        }
+      }
+      if (showPuter){
+        if (el("c_puter_model") && !el("c_puter_model").value.trim() && puterDefaultModel){
+          el("c_puter_model").value = puterDefaultModel;
         }
       }
     }
@@ -1236,21 +1582,33 @@
     function initProviderSelectors(){
       if (!el("c_provider") || !el("c_gate_provider")) return;
       // default to server's default provider for new AIs
-      el("c_provider").value = (llmProviderDefault === "openrouter") ? "openrouter" : "ollama";
-      el("c_gate_provider").value = (llmProviderDefault === "openrouter") ? "openrouter" : "ollama";
-      el("c_provider").onchange = updateOpenRouterUI;
-      el("c_gate_provider").onchange = updateOpenRouterUI;
-      updateOpenRouterUI();
-    }async function loadCharacters(){
-      const r = await fetch(`${API}/characters`);
-      const data = await r.json();
-      charactersById = {};
-      data.forEach(c => charactersById[c.id] = c);
+      el("c_provider").value = (llmProviderDefault === "openrouter") ? "openrouter" : (llmProviderDefault === "puter" ? "puter" : "ollama");
+      el("c_gate_provider").value = (llmProviderDefault === "openrouter") ? "openrouter" : (llmProviderDefault === "puter" ? "puter" : "ollama");
+      el("c_provider").onchange = updateProviderUI;
+      el("c_gate_provider").onchange = updateProviderUI;
+      updateProviderUI();
+    }
+
+    async function loadCharacters(){
+      try{
+        const data = await apiJson("/characters");
+        charactersById = {};
+        (Array.isArray(data) ? data : []).forEach(c => {
+          if (c && c.id) charactersById[c.id] = c;
+        });
+      } catch {
+        charactersById = {};
+      }
     }
 
     async function loadConversations(){
-      const r = await fetch(`${API}/conversations`);
-      const data = await r.json();
+      let data = [];
+      try{
+        const res = await apiJson("/conversations");
+        data = Array.isArray(res) ? res : [];
+      } catch {
+        data = [];
+      }
       conversationsById = {};
       data.forEach(c => conversationsById[c.id] = c);
 
@@ -1270,6 +1628,8 @@
         list.appendChild(d);
       });
 
+      if (activeConversationId && !conversationsById[activeConversationId]) activeConversationId = null;
+      if (!data.length) activeConversationId = null;
       if (!activeConversationId && data.length) setActiveConversation(data[0].id);
     }
 
@@ -1423,6 +1783,12 @@
     }
 
     function addMessage(m, {scroll=true} = {}){
+      // de-dupe: if the server ever sends the same message twice, update instead of duplicating
+      if (messageEls[m.id]){
+        updateMessage(m);
+        return;
+      }
+
       messagesById[m.id] = m;
 
       // remove welcome on first message
@@ -1474,23 +1840,17 @@
     // Actions (reactions, pins, edits, replies)
     // -------------------------
     async function toggleReaction(messageId, emoji){
-      try{
-        await fetch(`${API}/conversations/${activeConversationId}/messages/${messageId}/reactions`, {
-          method:"POST",
-          headers: {"Content-Type":"application/json"},
-          body: JSON.stringify({ emoji, actor_type:"user", actor_id:"user" })
-        });
-      } catch {}
+      if (!activeConversationId) return;
+      await apiSend(`/conversations/${activeConversationId}/messages/${messageId}/reactions`, {
+        emoji, actor_type:"user", actor_id:"user"
+      });
     }
 
     async function togglePin(messageId){
-      try{
-        await fetch(`${API}/conversations/${activeConversationId}/messages/${messageId}/pin`, {
-          method:"POST",
-          headers: {"Content-Type":"application/json"},
-          body: JSON.stringify({ actor_type:"user", actor_id:"user" })
-        });
-      } catch {}
+      if (!activeConversationId) return;
+      await apiSend(`/conversations/${activeConversationId}/messages/${messageId}/pin`, {
+        actor_type:"user", actor_id:"user"
+      });
       // refresh pins tab if open
       if (activeRightTab === "pins") renderRightPanel();
     }
@@ -1515,7 +1875,7 @@
       if (!settings.enableEditing) return;
       const m = messagesById[messageId];
       if (!m) return;
-      if (!(m.author_type === "user" && m.author_id === "user")) return;
+      if (m.author_type !== "user") return;
 
       // simple inline edit: load content to composer and mark state
       const current = (m.content || "");
@@ -1529,13 +1889,10 @@
     }
 
     async function submitEdit(messageId, newText){
-      try{
-        await fetch(`${API}/conversations/${activeConversationId}/messages/${messageId}`, {
-          method:"PATCH",
-          headers: {"Content-Type":"application/json"},
-          body: JSON.stringify({ editor_type:"user", editor_id:"user", content: newText })
-        });
-      } catch {}
+      if (!activeConversationId) return;
+      await apiSend(`/conversations/${activeConversationId}/messages/${messageId}`, {
+        editor_type:"user", editor_id:"user", content: newText
+      }, "PATCH");
     }
 
     // -------------------------
@@ -1544,6 +1901,8 @@
     async function sendMessage(){
       const content = el("msg").textContent.trim();
       if (!content || !activeConversationId) return;
+
+      await pushUserProfile();
 
       // if editing
       const editingId = el("send").dataset.editing;
@@ -1557,15 +1916,12 @@
       }
 
       el("msg").textContent = "";
-      const payload = { author_type:"user", author_id:"user", content };
+      const username = (settings.username || "User").trim() || "User";
+      const payload = { author_type:"user", author_id: username, content };
       if (settings.enableReply && replyToId) payload.reply_to = replyToId;
       cancelReply();
 
-      await fetch(`${API}/conversations/${activeConversationId}/messages`, {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify(payload)
-      });
+      await apiSend(`/conversations/${activeConversationId}/messages`, payload);
     }
 
     // -------------------------
@@ -1577,49 +1933,59 @@
 
       const provider = el("c_provider") ? el("c_provider").value : "ollama";
       const gate_provider = el("c_gate_provider") ? el("c_gate_provider").value : "ollama";
+      const usesOpenRouter = (provider === "openrouter") || (gate_provider === "openrouter");
+      const usesPuter = (provider === "puter") || (gate_provider === "puter");
+      if (usesOpenRouter && !openrouterConfigured){
+        alert("OpenRouter key missing. Set OPENROUTER_API_KEY on the server.");
+        return;
+      }
+      if (usesPuter && !puterConfigured){
+        alert("Puter unavailable. Check PUTER_BASE_URL on the server.");
+        return;
+      }
 
       // pick model fields based on provider
       const model = (provider === "openrouter")
         ? ((el("c_or_model")?.value || "").trim() || openrouterDefaultModel)
-        : el("c_model").value;
+        : (provider === "puter")
+          ? ((el("c_puter_model")?.value || "").trim() || puterDefaultModel)
+          : el("c_model").value;
 
       const gate_model = (gate_provider === "openrouter")
         ? ((el("c_or_gate")?.value || "").trim() || (provider === "openrouter" ? model : openrouterDefaultModel))
-        : el("c_gate").value;
+        : (gate_provider === "puter")
+          ? ((el("c_puter_gate")?.value || "").trim() || (provider === "puter" ? model : puterDefaultModel))
+          : el("c_gate").value;
+
+      if (!model) return alert("Select a chat model");
+      if (!gate_model) return alert("Select a gate model");
 
       const system_prompt = el("c_sys").value.trim() || `You are ${name}.`;
       const about = el("c_about").value.trim();
       const profile_color = el("c_color").value.trim();
-      const gate_interval_seconds = parseInt(el("c_interval").value || "10", 10);
+      const gate_interval_seconds = toInt(el("c_interval").value || "30", 30);
       const humanize_pacing = !!el("c_humanize").checked;
-      const split_messages = !!el("c_split").checked;
 
-      await fetch(`${API}/characters`, {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({
-          name,
-          provider,
-          model,
-          gate_provider,
-          gate_model,
-          system_prompt,
-          gate_interval_seconds: isFinite(gate_interval_seconds) ? gate_interval_seconds : 10,
-          enabled: true,
-          about,
-          profile_color,
-          humanize_pacing,
-          split_messages
-        })
+      await apiSend("/characters", {
+        name,
+        provider,
+        model,
+        gate_provider,
+        gate_model,
+        system_prompt,
+        gate_interval_seconds,
+        enabled: true,
+        about,
+        profile_color,
+        humanize_pacing,
       });
 
       el("c_name").value = "";
       el("c_sys").value = "";
       el("c_about").value = "";
       el("c_color").value = "";
-      el("c_interval").value = "10";
+      el("c_interval").value = "30";
       el("c_humanize").checked = false;
-      el("c_split").checked = false;
 
       // keep OpenRouter model typed values, but refresh the app state
       await boot();
@@ -1628,13 +1994,11 @@
 
 
     async function createChannel(){
-      const title = prompt("Channel name (no #):", "new-channel");
-      if (!title) return;
-      await fetch(`${API}/conversations`, {
-        method:"POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ title: title.replaceAll(" ","-").toLowerCase(), character_ids: [] })
-      });
+      const raw = prompt("Channel name (no #):", "new-channel");
+      if (!raw) return;
+      const title = slugify(raw);
+      if (!title) return alert("Channel name required");
+      await apiSend("/conversations", { title, character_ids: [] });
       await boot();
     }
 
@@ -1644,6 +2008,7 @@
     function addDevEvent(evt){
       const root = el("devLog");
       if (!root) return;
+      if (devPaused) return;
 
       const stage = evt.stage || "event";
       const d = evt.data || {};
@@ -1741,8 +2106,16 @@
       while (root.children.length > 60) root.removeChild(root.lastChild);
     }
 
+    function updateDevStatus(){
+      const status = el("devStatus");
+      const pauseBtn = el("devPauseBtn");
+      if (status) status.textContent = devPaused ? "paused" : "live";
+      if (pauseBtn) pauseBtn.textContent = devPaused ? "Resume" : "Pause";
+    }
+
     function setDevMode(on){
       devEnabled = !!on;
+      if (!devEnabled) devPaused = false;
       el("tabDev").style.display = devEnabled ? "block" : "none";
       if (!devEnabled && activeRightTab === "dev") setRightTab("members");
       if (ws && ws.readyState === 1) ws.send(JSON.stringify({type:"set_debug", enabled: devEnabled}));
@@ -1829,15 +2202,15 @@
       setRightTab("pins"); // reuse pins tab area for results feel
       el("rightBody").innerHTML = `<div class="tiny">Searching for <b>${escapeHtml(q)}</b>…</div>`;
       try{
-        const r = await fetch(`${API}/conversations/${activeConversationId}/search?q=${encodeURIComponent(q)}&limit=50`);
-        const res = await r.json();
+        const res = await apiJson(`/conversations/${activeConversationId}/search?q=${encodeURIComponent(q)}&limit=50`);
+        const results = Array.isArray(res) ? res : [];
         const body = el("rightBody");
         body.innerHTML = "";
-        if (!res.length){
+        if (!results.length){
           body.innerHTML = `<div class="tiny">No results.</div>`;
           return;
         }
-        res.reverse().forEach(m => {
+        results.reverse().forEach(m => {
           const div = document.createElement("div");
           div.className = "card";
           div.style.marginBottom = "10px";
@@ -1886,6 +2259,9 @@
     // -------------------------
     async function boot(){
       await loadHealth();
+      await loadPauseState();
+      await loadOllamaStartMode();
+      await pushUserProfile();
       await loadOllamaModels();
       initProviderSelectors();
       await loadCharacters();
@@ -1911,8 +2287,14 @@
     el("openSettings").onclick = () => openSettings();
     el("closeSettings").onclick = () => closeSettings();
     el("settingsBack").onclick = (e) => { if (e.target === el("settingsBack")) closeSettings(); };
+    el("closeProfile").onclick = () => closeProfile();
+    el("profileBack").onclick = (e) => { if (e.target === el("profileBack")) closeProfile(); };
+    el("saveProfile").onclick = () => saveProfile();
 
     el("devToggle").onchange = (e) => setDevMode(e.target.checked);
+    if (el("devPauseAll")) {
+      el("devPauseAll").onchange = (e) => setPauseAllCalls(e.target.checked);
+    }
 
     el("btnEmoji").onclick = () => {
       if (!settings.enableReactions){
@@ -1968,6 +2350,24 @@
     bind("s_time", "showTime");
     bind("s_avatars", "showAvatars");
     bind("s_enterSend", "enterToSend");
+    const usernameInput = el("s_username");
+    if (usernameInput){
+      usernameInput.oninput = (e) => {
+        setUsername(e.target.value);
+        scheduleUserProfileSync();
+      };
+    }
+    const usernameQuick = el("usernameQuick");
+    if (usernameQuick){
+      usernameQuick.oninput = (e) => {
+        setUsername(e.target.value);
+        scheduleUserProfileSync();
+      };
+    }
+    const ollamaStartSelect = el("s_ollama_start");
+    if (ollamaStartSelect){
+      ollamaStartSelect.onchange = (e) => setOllamaStartMode(e.target.value);
+    }
 
     // Build emoji grid
     buildEmojiGrid();
@@ -1978,3 +2378,4 @@
   </script>
 </body>
 </html>
+
